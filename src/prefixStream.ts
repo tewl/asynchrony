@@ -5,7 +5,7 @@ import {Deferred} from "./deferred";
 export class PrefixStream extends Transform
 {
     // region Private Members
-    private _prefixBuf: Buffer;
+    private readonly _prefixBuf: Buffer;
     private _partial: Buffer | undefined;
     private _flushedDeferred: Deferred<void>;
     // endregion
