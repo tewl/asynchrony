@@ -18,7 +18,11 @@
     "event",
     "eventToPromise",
     "stream",
-    "streamToPromise"
+    "streamToPromise",
+    "event",
+    "events",
+    "track",
+    "tracker"
   ],
   "author": "Kevin Peters <kwpeters@gmail.com>",
   "license": "MIT",

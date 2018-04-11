@@ -1,6 +1,6 @@
 import {Writable} from "stream";
 import {EventEmitter} from "events";
-import {ListenerTracker} from "eventhelpers";
+import {ListenerTracker} from "./listenerTracker";
 import * as BBPromise from "bluebird";
 
 
