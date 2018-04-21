@@ -6,6 +6,19 @@ import {Writable} from "stream";
 import {NullStream} from "./nullStream";
 import {eventToPromise} from "./promiseHelpers";
 
+export interface ISpawnResult
+{
+    /**
+     * The underlying child process.  This is provided so that clients can do
+     * things like kill() them.
+     */
+    childProcess: cp.ChildProcess;
+    /**
+     * A Promise that is resolved with the child process's trimmed output when
+     * the exit code is 0 and is rejected when it is non-zero.
+     */
+    closePromise: Promise<string>;
+}
 
 /**
  * Spawns a child process.  Each stdout and stderr output line is prefixed with
@@ -22,9 +35,7 @@ import {eventToPromise} from "./promiseHelpers";
  * @param stderrStream - The stream to receive stderr  A NullStream if
  *     undefined. For example:
  *     `new CombinedStream(new PrefixStream(".    "), process.stderr)`
- * @return {Promise<string>} A Promise that is resolved when the child process's
- *     trimmed output when the exit code is 0 and is rejected when it is
- *     non-zero.
+ * @return An object implementing ISpawnResult.
  */
 export function spawn(
     cmd: string,
@@ -33,7 +44,7 @@ export function spawn(
     description?: string,
     stdoutStream?: Writable,
     stderrStream?: Writable
-): Promise<string> {
+): ISpawnResult {
     const cmdLineRepresentation = getCommandLineRepresentation(cmd, args);
 
     if (description)
@@ -46,11 +57,11 @@ export function spawn(
 
     const stdoutCollector = new CollectorStream();
     const stderrCollector = new CollectorStream();
+    let childProcess: cp.ChildProcess;
 
+    const closePromise = new BBPromise((resolve: (output: string) => void, reject: (err: {exitCode: number, stderr: string}) => void) => {
 
-    return new BBPromise((resolve: (output: string) => void, reject: (err: {exitCode: number, stderr: string}) => void) => {
-
-        const childProcess = cp.spawn(cmd, args, {cwd: cwd, stdio: [process.stdin, "pipe", "pipe"]});
+        childProcess = cp.spawn(cmd, args, {cwd: cwd, stdio: [process.stdin, "pipe", "pipe"]});
 
         const outputStream = stdoutStream || new NullStream();
 
@@ -86,6 +97,11 @@ export function spawn(
         });
 
     });
+
+    return {
+        childProcess: childProcess!,
+        closePromise: closePromise
+    };
 }
 
 
